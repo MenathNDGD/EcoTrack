@@ -6,6 +6,7 @@ import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import { metadata } from "./metadata";
 import Header from "@/components/Header";
+import Sidebar from "@/components/Sidebar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -37,6 +38,7 @@ export default function RootLayout({
           />
           <div className="flex flex-1">
             {/* Sidebar Component */}
+            <Sidebar open={sidebarOpen} />
             <main className="flex-1 p-4 ml-0 transition-all duration-300 lg:p-8 lg:ml-64">
               {children}
             </main>
