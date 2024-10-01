@@ -60,6 +60,13 @@ export async function getRewardTransactions(userId: number) {
       .orderBy(desc(Transactions.date))
       .limit(10)
       .execute();
+
+    const formattedTransactions = transactions.map((t) => ({
+      ...t,
+      date: t.date.toISOString().split("T")[0],
+    }));
+
+    return formattedTransactions;
   } catch (error) {
     console.error("Error fetching reward transactions: ", error);
     return null;
@@ -78,4 +85,17 @@ export async function getUserBalance(userId: number): Promise<number> {
   }, 0);
 
   return Math.max(balance, 0);
+}
+
+export async function markNotificationAsRead(notificationId: number) {
+  try {
+    await db
+      .update(Notifications)
+      .set({ isRead: true })
+      .where(eq(Notifications.id, notificationId))
+      .execute();
+  } catch (error) {
+    console.error("Error marking notification as read");
+    return null;
+  }
 }
