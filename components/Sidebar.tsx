@@ -5,7 +5,7 @@ import { MapPin, Trash, Coins, Medal, Settings, Home } from "lucide-react";
 
 const sidebarItems = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/reports", label: "Report Waste", icon: MapPin },
+  { href: "/report", label: "Report Waste", icon: MapPin },
   { href: "/collect", label: "Collect Waste", icon: Trash },
   { href: "/rewards", label: "Rewards", icon: Coins },
   { href: "/leaderboard", label: "Leaderboard", icon: Medal },
@@ -24,7 +24,7 @@ export default function Sidebar({ open }: SidebarProps) {
         open ? "translate-x-0" : "-translate-x-full"
       } lg:translate-x-0`}
     >
-      <nav className="h-full flex flex-col justify-between">
+      <nav className="flex flex-col justify-between h-full">
         <div className="px-4 py-6 space-y-8">
           {sidebarItems.map((item, index) => (
             <Link href={item.href} key={index} passHref>
