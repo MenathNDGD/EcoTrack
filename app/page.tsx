@@ -61,7 +61,7 @@ function ImpactCard({
   );
 }
 
-const Home = () => {
+const HomePage = () => {
   return (
     <div className="container px-4 py-16 mx-auto">
       <section className="mb-20 text-center">
@@ -119,4 +119,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default HomePage;
