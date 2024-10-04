@@ -1,24 +1,62 @@
+// @ts-nocheck
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   ArrowRight,
   Leaf,
   Recycle,
   Users,
   Coins,
-  CheckCircle2Icon,
+  MapPin,
   ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Poppins } from "next/font/google";
 import Link from "next/link";
-import React from "react";
+import ContractInteraction from "@/components/ContractInteraction";
+import {
+  getRecentReports,
+  getAllRewards,
+  getWasteCollectionTasks,
+} from "@/utils/db/actions";
+const poppins = Poppins({
+  weight: ["300", "400", "600"],
+  subsets: ["latin"],
+  display: "swap",
+});
 
 function AnimatedGlobe() {
   return (
     <div className="relative w-32 h-32 mx-auto mb-8">
-      <div className="absolute inset-0 bg-green-500 rounded-full opacity-20 animate-pulse"></div>
-      <div className="absolute bg-green-400 rounded-full inset-2 opacity-40 animate-ping"></div>
-      <div className="absolute bg-green-300 rounded-full inset-4 opacity-60 animate-spin"></div>
-      <div className="absolute bg-green-200 rounded-full inset-6 opacity-80 animate-bounce"></div>
-      <Leaf className="absolute inset-0 w-16 h-16 m-auto text-green-600 animate-pulse" />
+      <div className="absolute inset-0 rounded-full bg-green-500 opacity-20 animate-pulse"></div>
+      <div className="absolute inset-2 rounded-full bg-green-400 opacity-40 animate-ping"></div>
+      <div className="absolute inset-4 rounded-full bg-green-300 opacity-60 animate-spin"></div>
+      <div className="absolute inset-6 rounded-full bg-green-200 opacity-80 animate-bounce"></div>
+      <Leaf className="absolute inset-0 m-auto h-16 w-16 text-green-600 animate-pulse" />
+    </div>
+  );
+}
+
+function ImpactCard({
+  title,
+  value,
+  icon: Icon,
+}: {
+  title: string;
+  value: string | number;
+  icon: React.ElementType;
+}) {
+  const formattedValue =
+    typeof value === "number"
+      ? value.toLocaleString("en-US", { maximumFractionDigits: 1 })
+      : value;
+
+  return (
+    <div className="p-6 rounded-xl bg-gray-50 border border-gray-100 transition-all duration-300 ease-in-out hover:shadow-md">
+      <Icon className="h-10 w-10 text-green-500 mb-4" />
+      <p className="text-3xl font-bold mb-2 text-gray-800">{formattedValue}</p>
+      <p className="text-sm text-gray-600">{title}</p>
     </div>
   );
 }
@@ -33,53 +71,100 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <div className="flex flex-col items-center p-8 text-center transition-all duration-300 ease-in-out bg-white shadow-md rounded-xl hover:shadow-lg">
-      <div className="p-4 mb-6 bg-green-100 rounded-full">
-        <Icon className="w-8 h-8 text-green-600" />
+    <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 ease-in-out flex flex-col items-center text-center">
+      <div className="bg-green-100 p-4 rounded-full mb-6">
+        <Icon className="h-8 w-8 text-green-600" />
       </div>
-      <h3 className="mb-4 text-xl font-semibold text-gray-800">{title}</h3>
-      <p className="leading-relaxed text-gray-600">{description}</p>
+      <h3 className="text-xl font-semibold mb-4 text-gray-800">{title}</h3>
+      <p className="text-gray-600 leading-relaxed">{description}</p>
     </div>
   );
 }
 
-function ImpactCard({
-  title,
-  value,
-  icon: Icon,
-}: {
-  title: string;
-  value: string | number;
-  icon: React.ElementType;
-}) {
-  return (
-    <div className="p-6 transition-all duration-300 ease-in-out border border-gray-100 rounded-xl bg-gray-50 hover:shadow-md">
-      <Icon className="w-10 h-10 mb-4 text-green-500" />
-      <p className="mb-2 text-3xl font-bold text-gray-800">{value}</p>
-      <p className="text-sm text-gray-600">{title}</p>
-    </div>
-  );
-}
+export default function Home() {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [impactData, setImpactData] = useState({
+    wasteCollected: 0,
+    reportsSubmitted: 0,
+    tokensEarned: 0,
+    co2Offset: 0,
+  });
 
-const HomePage = () => {
+  useEffect(() => {
+    async function fetchImpactData() {
+      try {
+        const reports = await getRecentReports(100);
+        const rewards = await getAllRewards();
+        const tasks = await getWasteCollectionTasks(100);
+
+        const wasteCollected = tasks.reduce((total, task) => {
+          const match = task.amount.match(/(\d+(\.\d+)?)/);
+          const amount = match ? parseFloat(match[0]) : 0;
+          return total + amount;
+        }, 0);
+
+        const reportsSubmitted = reports.length;
+        const tokensEarned = rewards.reduce(
+          (total, reward) => total + (reward.points || 0),
+          0
+        );
+        const co2Offset = wasteCollected * 0.5;
+
+        setImpactData({
+          wasteCollected: Math.round(wasteCollected * 10) / 10,
+          reportsSubmitted,
+          tokensEarned,
+          co2Offset: Math.round(co2Offset * 10) / 10,
+        });
+      } catch (error) {
+        console.error("Error fetching impact data:", error);
+        setImpactData({
+          wasteCollected: 0,
+          reportsSubmitted: 0,
+          tokensEarned: 0,
+          co2Offset: 0,
+        });
+      }
+    }
+
+    fetchImpactData();
+  }, []);
+
+  const login = () => {
+    setLoggedIn(true);
+  };
+
   return (
-    <div className="container px-4 py-16 mx-auto">
-      <section className="mb-20 text-center">
+    <div className={`container mx-auto px-4 py-16 ${poppins.className}`}>
+      <section className="text-center mb-20">
         <AnimatedGlobe />
-        <h1 className="mb-6 text-6xl font-bold tracking-tight text-gray-800">
-          EcoTrack{" "}
-          <span className="text-green-600">Waste Management Platform</span>
+        <h1 className="text-6xl font-bold mb-6 text-gray-800 tracking-tight">
+          EcoTrack <span className="text-green-600">Waste Management</span>
         </h1>
-        <p className="max-w-3xl mx-auto mb-8 text-xl leading-relaxed text-gray-600">
+        <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed mb-8">
           Be a part of our community and revolutionize waste management with
           smart, efficient, and rewarding solutions. Together, let's make a
           cleaner, greener future!
         </p>
-        <Button className="px-12 py-6 text-lg text-white bg-green-600 rounded-full hover:bg-green-700">
-          Get Started
-        </Button>
+        {!loggedIn ? (
+          <Button
+            onClick={login}
+            className="bg-green-600 hover:bg-green-700 text-white text-lg py-6 px-10 rounded-full font-medium transition-all duration-300 ease-in-out transform hover:scale-105"
+          >
+            Get Started
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+        ) : (
+          <Link href="/report">
+            <Button className="bg-green-600 hover:bg-green-700 text-white text-lg py-6 px-10 rounded-full font-medium transition-all duration-300 ease-in-out transform hover:scale-105">
+              Report Waste
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
+        )}
       </section>
-      <section className="grid gap-10 mb-20 md:grid-cols-3">
+
+      <section className="grid md:grid-cols-3 gap-10 mb-20">
         <FeatureCard
           icon={Leaf}
           title="Eco-Friendly"
@@ -93,30 +178,37 @@ const HomePage = () => {
         <FeatureCard
           icon={Users}
           title="Community Driven"
-          description="Join our community and work together to make a difference."
+          description="Join our community and work together to make a difference in sustainable practices."
         />
       </section>
-      <section className="p-10 mb-20 bg-white shadow-lg rounded-3xl">
-        <h2 className="mb-12 text-4xl font-bold text-center text-gray-800">
+
+      <section className="bg-white p-10 rounded-3xl shadow-lg mb-20">
+        <h2 className="text-4xl font-bold mb-12 text-center text-gray-800">
           Our Impact
         </h2>
-        <div className="grid gap-6 md:grid-cols-4">
+        <div className="grid md:grid-cols-4 gap-6">
           <ImpactCard
             title="Waste Collected"
-            value={"20.85 Kg"}
+            value={`${impactData.wasteCollected} kg`}
             icon={Recycle}
           />
           <ImpactCard
             title="Reports Submitted"
-            value={"20.85 Kg"}
-            icon={CheckCircle2Icon}
+            value={impactData.reportsSubmitted.toString()}
+            icon={MapPin}
           />
-          <ImpactCard title="Tokens Earned" value={"20.85 Kg"} icon={Coins} />
-          <ImpactCard title="CO₂ Offsetted" value={"20.85 Kg"} icon={Leaf} />
+          <ImpactCard
+            title="Tokens Earned"
+            value={impactData.tokensEarned.toString()}
+            icon={Coins}
+          />
+          <ImpactCard
+            title="CO2 Offset"
+            value={`${impactData.co2Offset} kg`}
+            icon={Leaf}
+          />
         </div>
       </section>
     </div>
   );
-};
-
-export default HomePage;
+}
