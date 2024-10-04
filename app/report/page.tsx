@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useCallback, useEffect } from "react";
 import {
   MapPin,
@@ -6,7 +7,7 @@ import {
   CheckCircle,
   Loader,
   Tag,
-  Scale,
+  Weight,
   Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -291,11 +292,11 @@ export default function ReportPage() {
         </div>
 
         {preview && (
-          <div className="mt-4 mb-8">
+          <div className="mt-4">
             <img
               src={preview}
-              alt="Waste preview"
-              className="max-w-full h-auto rounded-xl shadow-md"
+              alt="Waste Preview"
+              className="object-cover w-full h-48 rounded-xl mb-8"
             />
           </div>
         )}
@@ -466,7 +467,7 @@ export default function ReportPage() {
                     {report.wasteType}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <Scale className="inline-block w-4 h-4 mr-2 text-green-500" />
+                    <Weight className="inline-block w-4 h-4 mr-2 text-green-500" />
                     {report.amount}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
